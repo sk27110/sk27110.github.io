@@ -11,3 +11,15 @@
 [class*="ground-pane"] {
 	filter: grayscale(1);
 }
+
+.balloon__address {
+	color: yellow;
+}
+
+.balloon a {
+	color: red;
+}
+
+[class*="balloon__close-button"] {
+	opacity: 1;
+}
