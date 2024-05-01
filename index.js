@@ -1,56 +1,68 @@
-let center = [48.8866527839977,2.34310679732974];
+ymaps.ready(function () {
 
-function init() {
-	let map = new ymaps.Map('map-test', {
-		center: center,
-		zoom: 17
-	});
+    let myMap = new ymaps.Map('map-test', {
+      center: [59.91795236804815, 30.304908500000003],
+      zoom: 15,
+      controls: ['routePanelControl']
+    });
 
-	let placemark = new ymaps.Placemark(center, {
-		balloonContentHeader: 'Хедер балуна',
-		balloonContentBody: 'Боди балуна',
-		balloonContentFooter: 'Подвал',
-	}, {
-		iconLayout: 'default#image',
-		iconImageHref: 'https://image.flaticon.com/icons/png/512/64/64113.png',
-		iconImageSize: [40, 40],
-		iconImageOffset: [-19, -44]
-	});
+    let control = myMap.controls.get('routePanelControl');
+    let city = 'Санкт-Петербург';
 
-	let placemark1 = new ymaps.Placemark(center, {
-		balloonContent: `
+    // let location = ymaps.geolocation.get();
 
-			<div class="balloon">
-				<div class="balloon__address">г. Париж</div>
-				<div class="balloon__contacts">
-					<a href="tel:+7999999999">+7999999999</a>
-				</div>
-			</div>
+    // location.then(function(res) {
+    // 	let locationText = res.geoObjects.get(0).properties.get('text');
+    // 	console.log(locationText)
+    // });
 
-		`
-	}, {
-		iconLayout: 'default#image',
-		iconImageHref: 'https://image.flaticon.com/icons/png/512/64/64113.png',
-		iconImageSize: [40, 40],
-		iconImageOffset: [-19, -44]
-	});
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0
+    };
 
-	map.controls.remove('geolocationControl'); // удаляем геолокацию
-  map.controls.remove('searchControl'); // удаляем поиск
-  map.controls.remove('trafficControl'); // удаляем контроль трафика
-  map.controls.remove('typeSelector'); // удаляем тип
-  map.controls.remove('fullscreenControl'); // удаляем кнопку перехода в полноэкранный режим
-  map.controls.remove('zoomControl'); // удаляем контрол зуммирования
-  map.controls.remove('rulerControl'); // удаляем контрол правил
-  // map.behaviors.disable(['scrollZoom']); // отключаем скролл карты (опционально)
+    function success(pos) {
+      const crd = pos.coords;
 
-	// map.geoObjects.add(placemark);
-	map.geoObjects.add(placemark1);
-
-	placemark1.balloon.open();
-}
-
-ymaps.ready(init);
+      console.log(`Latitude : ${crd.latitude}`);
+      console.log(`Longitude: ${crd.longitude}`);
 
 
-//<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&amp;apikey=7240ea03-95e6-44f3-a9c4-e4b336df23ec">
+      let reverseGeocoder = ymaps.geocode([crd.latitude, crd.longitude]);
+      let locationText = null;
+      reverseGeocoder.then(function (res) {
+        locationText = res.geoObjects.get(0).properties.get('text')
+        console.log(locationText)
+
+        control.routePanel.state.set({
+          type: 'masstransit',
+          fromEnabled: false,
+          from: locationText,
+          toEnabled: true,
+          to: `${city}, Невский проспект 146`,
+        });
+      });
+
+      console.log(locationText)
+
+
+
+      control.routePanel.options.set({
+        types: {
+          masstransit: true,
+          pedestrian: true,
+          taxi: true
+        }
+      })
+    }
+
+    function error(err) {
+      console.warn(`ERROR(${err.code}): ${err.message}`);
+    }
+
+    navigator.geolocation.getCurrentPosition(success, error, options);
+
+
+
+  });
